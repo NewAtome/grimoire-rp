@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Matiere = {
   id: number;
@@ -12,188 +12,177 @@ type Matiere = {
 
 type PageActive = "jetons" | "cours" | "potions" | "notes";
 
+type PageDeCours = {
+  id: number;
+  titre: string;
+  contenu: string;
+};
+
+type PagesParCours = Record<string, PageDeCours[]>;
+
 const annee1: Matiere[] = [
-  {
-    id: 1,
-    nom: "Alchimie - Botanique",
-    icone: "🌿",
-    points: 0,
-    maximum: 30,
-  },
-  {
-    id: 2,
-    nom: "Sorts",
-    icone: "✨",
-    points: 0,
-    maximum: 40,
-  },
-  {
-    id: 3,
-    nom: "Potions",
-    icone: "🧪",
-    points: 0,
-    maximum: 20,
-  },
-  {
-    id: 4,
-    nom: "Histoire de la magie",
-    icone: "📜",
-    points: 0,
-    maximum: 20,
-  },
-  {
-    id: 5,
-    nom: "Créatures magiques",
-    icone: "🐉",
-    points: 0,
-    maximum: 20,
-  },
-  {
-    id: 6,
-    nom: "Club",
-    icone: "🏆",
-    points: 0,
-    maximum: 10,
-  },
-  {
-    id: 7,
-    nom: "Divers",
-    icone: "⚡",
-    points: 0,
-    maximum: 40,
-  },
+  { id: 1, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 30 },
+  { id: 2, nom: "Sorts", icone: "✨", points: 0, maximum: 40 },
+  { id: 3, nom: "Potions", icone: "🧪", points: 0, maximum: 20 },
+  { id: 4, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 20 },
+  { id: 5, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 20 },
+  { id: 6, nom: "Club", icone: "🏆", points: 0, maximum: 10 },
+  { id: 7, nom: "Divers", icone: "⚡", points: 0, maximum: 40 },
 ];
 
 const annee2: Matiere[] = [
-  {
-    id: 101,
-    nom: "Alchimie - Botanique",
-    icone: "🌿",
-    points: 0,
-    maximum: 20,
-  },
-  {
-    id: 102,
-    nom: "Sorts",
-    icone: "✨",
-    points: 0,
-    maximum: 40,
-  },
-  {
-    id: 103,
-    nom: "Potions",
-    icone: "🧪",
-    points: 0,
-    maximum: 15,
-  },
-  {
-    id: 104,
-    nom: "Histoire de la magie",
-    icone: "📜",
-    points: 0,
-    maximum: 30,
-  },
-  {
-    id: 105,
-    nom: "Créatures magiques",
-    icone: "🐉",
-    points: 0,
-    maximum: 25,
-  },
-  {
-    id: 106,
-    nom: "Club",
-    icone: "🏆",
-    points: 0,
-    maximum: 20,
-  },
-  {
-    id: 107,
-    nom: "Divers",
-    icone: "⚡",
-    points: 0,
-    maximum: 50 ,
-  },
+  { id: 101, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 20 },
+  { id: 102, nom: "Sorts", icone: "✨", points: 0, maximum: 40 },
+  { id: 103, nom: "Potions", icone: "🧪", points: 0, maximum: 15 },
+  { id: 104, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 30 },
+  { id: 105, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 25 },
+  { id: 106, nom: "Club", icone: "🏆", points: 0, maximum: 20 },
+  { id: 107, nom: "Divers", icone: "⚡", points: 0, maximum: 50 },
 ];
+
+function cleCours(annee: 1 | 2, matiereId: number) {
+  return `${annee}-${matiereId}`;
+}
 
 export default function Home() {
   const [pageActive, setPageActive] = useState<PageActive>("jetons");
   const [anneeActive, setAnneeActive] = useState<1 | 2>(1);
+  const [matieresAnnee1, setMatieresAnnee1] = useState<Matiere[]>(annee1);
+  const [matieresAnnee2, setMatieresAnnee2] = useState<Matiere[]>(annee2);
+  const [coursOuvert, setCoursOuvert] = useState<Matiere | null>(null);
+  const [pageCoursActive, setPageCoursActive] = useState<number | null>(null);
+  const [pagesParCours, setPagesParCours] = useState<PagesParCours>({});
+  const [notes, setNotes] = useState("Écris ici tes notes personnelles...");
 
- const [matieresAnnee1, setMatieresAnnee1] =
-  useState<Matiere[]>(annee1);
+  useEffect(() => {
+    const sauvegarde = localStorage.getItem("grimoire-pages-cours");
+    if (sauvegarde) {
+      try {
+        setPagesParCours(JSON.parse(sauvegarde));
+      } catch {
+        // On ignore une sauvegarde invalide.
+      }
+    }
+  }, []);
 
- const [matieresAnnee2, setMatieresAnnee2] =
-  useState<Matiere[]>(annee2);
-
-  const [notes, setNotes] = useState(
-    "Écris ici tes notes de cours..."
-  );
+  useEffect(() => {
+    localStorage.setItem("grimoire-pages-cours", JSON.stringify(pagesParCours));
+  }, [pagesParCours]);
 
   const matieres =
     anneeActive === 1 ? matieresAnnee1 : matieresAnnee2;
 
-  const totalPoints = useMemo(() => {
-    return matieres.reduce(
-      (total, matiere) => total + matiere.points,
-      0
-    );
-  }, [matieres]);
+  const totalPoints = useMemo(
+    () => matieres.reduce((total, matiere) => total + matiere.points, 0),
+    [matieres]
+  );
 
-  const totalMaximum = useMemo(() => {
-    return matieres.reduce(
-      (total, matiere) => total + matiere.maximum,
-      0
-    );
-  }, [matieres]);
+  const totalMaximum = useMemo(
+    () => matieres.reduce((total, matiere) => total + matiere.maximum, 0),
+    [matieres]
+  );
 
   const coursTermines = matieres.filter(
     (matiere) => matiere.points >= matiere.maximum
   ).length;
 
   const progression =
-    totalMaximum === 0
-      ? 0
-      : Math.round((totalPoints / totalMaximum) * 100);
+    totalMaximum === 0 ? 0 : Math.round((totalPoints / totalMaximum) * 100);
 
   function changerPoints(id: number, changement: number) {
     const modifier = (liste: Matiere[]) =>
-      liste.map((matiere) => {
-        if (matiere.id !== id) {
-          return matiere;
-        }
-
-        return {
-          ...matiere,
-          points: Math.min(
-            matiere.maximum,
-            Math.max(0, matiere.points + changement)
-          ),
-        };
-      });
+      liste.map((matiere) =>
+        matiere.id === id
+          ? {
+              ...matiere,
+              points: Math.min(
+                matiere.maximum,
+                Math.max(0, matiere.points + changement)
+              ),
+            }
+          : matiere
+      );
 
     if (anneeActive === 1) {
-      setMatieresAnnee1((liste) => modifier(liste));
+      setMatieresAnnee1(modifier);
     } else {
-      setMatieresAnnee2((liste) => modifier(liste));
+      setMatieresAnnee2(modifier);
     }
   }
 
   function reinitialiser() {
-    const confirmation = window.confirm(
-      "Voulez-vous vraiment réinitialiser cette année ?"
+    if (!window.confirm("Réinitialiser les points de cette année ?")) return;
+    if (anneeActive === 1) setMatieresAnnee1(annee1);
+    else setMatieresAnnee2(annee2);
+  }
+
+  function ouvrirCours(matiere: Matiere) {
+    const cle = cleCours(anneeActive, matiere.id);
+    const pages = pagesParCours[cle] ?? [];
+
+    setCoursOuvert(matiere);
+    setPageCoursActive(pages[0]?.id ?? null);
+  }
+
+  function ajouterPageCours() {
+    if (!coursOuvert) return;
+
+    const cle = cleCours(anneeActive, coursOuvert.id);
+    const nouvellePage: PageDeCours = {
+      id: Date.now(),
+      titre: `Nouvelle page ${(pagesParCours[cle]?.length ?? 0) + 1}`,
+      contenu: "",
+    };
+
+    setPagesParCours((ancien) => ({
+      ...ancien,
+      [cle]: [...(ancien[cle] ?? []), nouvellePage],
+    }));
+    setPageCoursActive(nouvellePage.id);
+  }
+
+  function modifierPageCours(
+    champ: "titre" | "contenu",
+    valeur: string
+  ) {
+    if (!coursOuvert || pageCoursActive === null) return;
+
+    const cle = cleCours(anneeActive, coursOuvert.id);
+
+    setPagesParCours((ancien) => ({
+      ...ancien,
+      [cle]: (ancien[cle] ?? []).map((page) =>
+        page.id === pageCoursActive ? { ...page, [champ]: valeur } : page
+      ),
+    }));
+  }
+
+  function supprimerPageCours() {
+    if (!coursOuvert || pageCoursActive === null) return;
+    if (!window.confirm("Supprimer cette page de cours ?")) return;
+
+    const cle = cleCours(anneeActive, coursOuvert.id);
+    const nouvellesPages = (pagesParCours[cle] ?? []).filter(
+      (page) => page.id !== pageCoursActive
     );
 
-    if (!confirmation) {
-      return;
-    }
-
-    if (anneeActive === 1) {
-      setMatieresAnnee1(annee1);
-    } else {
-      setMatieresAnnee2(annee2);
-    }
+    setPagesParCours((ancien) => ({
+      ...ancien,
+      [cle]: nouvellesPages,
+    }));
+    setPageCoursActive(nouvellesPages[0]?.id ?? null);
   }
+
+  const cleCoursOuvert = coursOuvert
+    ? cleCours(anneeActive, coursOuvert.id)
+    : "";
+
+  const pagesCoursOuvert = coursOuvert
+    ? pagesParCours[cleCoursOuvert] ?? []
+    : [];
+
+  const pageSelectionnee =
+    pagesCoursOuvert.find((page) => page.id === pageCoursActive) ?? null;
 
   return (
     <div className="min-h-screen bg-[#090b12] text-white">
@@ -201,15 +190,9 @@ export default function Home() {
         <div className="border-b border-[#292b35] p-5">
           <div className="flex items-center gap-3">
             <div className="text-3xl">📚</div>
-
             <div>
-              <h1 className="text-xl text-[#d6a928]">
-                GRIMOIRE
-              </h1>
-
-              <p className="text-xs text-gray-500">
-                Académie magique
-              </p>
+              <h1 className="text-xl text-[#d6a928]">GRIMOIRE</h1>
+              <p className="text-xs text-gray-500">Académie magique</p>
             </div>
           </div>
         </div>
@@ -224,28 +207,37 @@ export default function Home() {
               actif={pageActive === "jetons"}
               icone="🪙"
               texte="Jetons"
-              action={() => setPageActive("jetons")}
+              action={() => {
+                setPageActive("jetons");
+                setCoursOuvert(null);
+              }}
             />
-
             <Menu
               actif={pageActive === "cours"}
               icone="📖"
               texte="Cours"
-              action={() => setPageActive("cours")}
+              action={() => {
+                setPageActive("cours");
+                setCoursOuvert(null);
+              }}
             />
-
             <Menu
               actif={pageActive === "potions"}
               icone="🧪"
               texte="Potions"
-              action={() => setPageActive("potions")}
+              action={() => {
+                setPageActive("potions");
+                setCoursOuvert(null);
+              }}
             />
-
             <Menu
               actif={pageActive === "notes"}
               icone="🪶"
               texte="Mes notes"
-              action={() => setPageActive("notes")}
+              action={() => {
+                setPageActive("notes");
+                setCoursOuvert(null);
+              }}
             />
           </div>
         </nav>
@@ -266,8 +258,31 @@ export default function Home() {
           />
         )}
 
-        {pageActive === "cours" && (
-          <PageCours matieres={matieres} anneeActive={anneeActive} />
+        {pageActive === "cours" && !coursOuvert && (
+          <PageCours
+            matieres={matieres}
+            anneeActive={anneeActive}
+            setAnneeActive={setAnneeActive}
+            ouvrirCours={ouvrirCours}
+          />
+        )}
+
+        {pageActive === "cours" && coursOuvert && (
+          <EditeurCours
+            matiere={coursOuvert}
+            anneeActive={anneeActive}
+            pages={pagesCoursOuvert}
+            pageActive={pageCoursActive}
+            pageSelectionnee={pageSelectionnee}
+            retour={() => {
+              setCoursOuvert(null);
+              setPageCoursActive(null);
+            }}
+            choisirPage={setPageCoursActive}
+            ajouterPage={ajouterPageCours}
+            modifierPage={modifierPageCours}
+            supprimerPage={supprimerPageCours}
+          />
         )}
 
         {pageActive === "potions" && <PagePotions />}
@@ -305,15 +320,11 @@ function PageJetons({
     <>
       <header className="mb-10 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-3xl text-[#d6a928]">
-            SUIVI DES JETONS
-          </h2>
-
+          <h2 className="text-3xl text-[#d6a928]">SUIVI DES JETONS</h2>
           <p className="mt-1 text-gray-500">
             Gérez votre progression académique
           </p>
         </div>
-
         <button
           onClick={reinitialiser}
           className="rounded-md border border-red-900 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40"
@@ -322,31 +333,10 @@ function PageJetons({
         </button>
       </header>
 
-      <div className="mb-8 flex justify-center">
-        <div className="flex rounded-lg bg-[#191b25] p-1">
-          <button
-            onClick={() => setAnneeActive(1)}
-            className={`rounded-md px-6 py-3 ${
-              anneeActive === 1
-                ? "bg-[#242631] text-[#e8b928]"
-                : "text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            PREMIÈRE ANNÉE
-          </button>
-
-          <button
-            onClick={() => setAnneeActive(2)}
-            className={`rounded-md px-6 py-3 ${
-              anneeActive === 2
-                ? "bg-[#242631] text-[#e8b928]"
-                : "text-gray-500 hover:text-gray-300"
-            }`}
-          >
-            DEUXIÈME ANNÉE
-          </button>
-        </div>
-      </div>
+      <OngletsAnnees
+        anneeActive={anneeActive}
+        setAnneeActive={setAnneeActive}
+      />
 
       <section className="mb-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Statistique
@@ -354,35 +344,25 @@ function PageJetons({
           valeur={`${totalPoints}/${totalMaximum}`}
           texte="Points totaux"
         />
-
         <Statistique
           icone="🏆"
           valeur={`${coursTermines}/${matieres.length}`}
           texte="Cours complétés"
         />
-
         <Statistique
           icone="📖"
           valeur={String(matieres.length)}
           texte="Total cours"
         />
-
-        <Statistique
-          icone="⚠"
-          valeur="0"
-          texte="Haute priorité"
-        />
+        <Statistique icone="⚠" valeur="0" texte="Haute priorité" />
       </section>
 
       <section className="mb-7">
         <div className="mb-5 flex items-end justify-between">
           <div>
             <h3 className="text-2xl text-[#d6a928]">
-              {anneeActive === 1
-                ? "PREMIÈRE ANNÉE"
-                : "DEUXIÈME ANNÉE"}
+              {anneeActive === 1 ? "PREMIÈRE ANNÉE" : "DEUXIÈME ANNÉE"}
             </h3>
-
             <p className="text-gray-500">
               {coursTermines}/{matieres.length} cours complétés
             </p>
@@ -391,18 +371,11 @@ function PageJetons({
           <div className="text-right">
             <p className="text-xl text-[#d6a928]">
               {totalPoints}
-              <span className="text-gray-500">
-                {" "}
-                / {totalMaximum}
-              </span>
+              <span className="text-gray-500"> / {totalMaximum}</span>
             </p>
-
-            <p className="text-xs text-gray-500">
-              points totaux
-            </p>
+            <p className="text-xs text-gray-500">points totaux</p>
           </div>
         </div>
-
         <Barre progression={progression} />
       </section>
 
@@ -422,21 +395,27 @@ function PageJetons({
 function PageCours({
   matieres,
   anneeActive,
+  setAnneeActive,
+  ouvrirCours,
 }: {
   matieres: Matiere[];
   anneeActive: 1 | 2;
+  setAnneeActive: (annee: 1 | 2) => void;
+  ouvrirCours: (matiere: Matiere) => void;
 }) {
   return (
     <>
-      <header className="mb-8">
-        <h2 className="text-3xl text-[#d6a928]">
-          MES COURS
-        </h2>
-
+      <header className="mb-6">
+        <h2 className="text-3xl text-[#d6a928]">MES COURS</h2>
         <p className="mt-1 text-gray-500">
-          Cours de {anneeActive === 1 ? "première" : "deuxième"} année
+          Choisissez une matière puis créez autant de pages que nécessaire.
         </p>
       </header>
+
+      <OngletsAnnees
+        anneeActive={anneeActive}
+        setAnneeActive={setAnneeActive}
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {matieres.map((matiere) => (
@@ -445,22 +424,183 @@ function PageCours({
             className="rounded-lg border border-[#54421f] bg-[#171923] p-6"
           >
             <div className="text-4xl">{matiere.icone}</div>
-
-            <h3 className="mt-4 text-xl text-[#e8b928]">
-              {matiere.nom}
-            </h3>
-
+            <h3 className="mt-4 text-xl text-[#e8b928]">{matiere.nom}</h3>
             <p className="mt-2 text-sm text-gray-500">
-              Consultez les chapitres, les devoirs et les documents.
+              Ouvrez le cours pour écrire plusieurs pages.
             </p>
-
-            <button className="mt-5 rounded border border-[#5e4a22] px-4 py-2 text-sm hover:bg-[#3a3019]">
+            <button
+              onClick={() => ouvrirCours(matiere)}
+              className="mt-5 rounded border border-[#5e4a22] px-4 py-2 text-sm hover:bg-[#3a3019]"
+            >
               Ouvrir le cours
             </button>
           </article>
         ))}
       </section>
     </>
+  );
+}
+
+function EditeurCours({
+  matiere,
+  anneeActive,
+  pages,
+  pageActive,
+  pageSelectionnee,
+  retour,
+  choisirPage,
+  ajouterPage,
+  modifierPage,
+  supprimerPage,
+}: {
+  matiere: Matiere;
+  anneeActive: 1 | 2;
+  pages: PageDeCours[];
+  pageActive: number | null;
+  pageSelectionnee: PageDeCours | null;
+  retour: () => void;
+  choisirPage: (id: number) => void;
+  ajouterPage: () => void;
+  modifierPage: (champ: "titre" | "contenu", valeur: string) => void;
+  supprimerPage: () => void;
+}) {
+  return (
+    <>
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <button
+            onClick={retour}
+            className="mb-3 text-sm text-gray-400 hover:text-[#e8b928]"
+          >
+            ← Retour aux cours
+          </button>
+          <h2 className="text-3xl text-[#d6a928]">
+            {matiere.icone} {matiere.nom}
+          </h2>
+          <p className="mt-1 text-gray-500">
+            {anneeActive === 1 ? "Première année" : "Deuxième année"}
+          </p>
+        </div>
+
+        <button
+          onClick={ajouterPage}
+          className="rounded-md bg-[#d6a928] px-4 py-2 font-medium text-black hover:bg-[#f2c438]"
+        >
+          + Nouvelle page
+        </button>
+      </header>
+
+      <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
+        <aside className="rounded-lg border border-[#54421f] bg-[#171923] p-4">
+          <h3 className="mb-3 text-sm uppercase tracking-widest text-gray-500">
+            Pages du cours
+          </h3>
+
+          {pages.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              Aucune page. Clique sur « Nouvelle page ».
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {pages.map((page, index) => (
+                <button
+                  key={page.id}
+                  onClick={() => choisirPage(page.id)}
+                  className={`w-full rounded-md px-3 py-3 text-left ${
+                    pageActive === page.id
+                      ? "bg-[#3a3420] text-[#f2c438]"
+                      : "bg-[#10121a] text-gray-300 hover:bg-white/5"
+                  }`}
+                >
+                  <span className="mr-2 text-gray-500">{index + 1}.</span>
+                  {page.titre || "Page sans titre"}
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        <section className="rounded-lg border border-[#54421f] bg-[#171923] p-5">
+          {!pageSelectionnee ? (
+            <div className="grid min-h-[500px] place-items-center text-center">
+              <div>
+                <div className="text-5xl">📄</div>
+                <p className="mt-4 text-gray-400">
+                  Crée une page pour commencer à écrire ton cours.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <input
+                value={pageSelectionnee.titre}
+                onChange={(event) =>
+                  modifierPage("titre", event.target.value)
+                }
+                placeholder="Titre de la page"
+                className="w-full border-b border-[#343744] bg-transparent pb-3 text-2xl text-[#e8b928] outline-none focus:border-[#d6a928]"
+              />
+
+              <textarea
+                value={pageSelectionnee.contenu}
+                onChange={(event) =>
+                  modifierPage("contenu", event.target.value)
+                }
+                placeholder="Écris ici tout le contenu de ton cours..."
+                className="mt-5 min-h-[520px] w-full resize-y rounded-lg border border-[#343744] bg-[#0f1119] p-5 leading-7 text-gray-200 outline-none focus:border-[#d6a928]"
+              />
+
+              <div className="mt-4 flex items-center justify-between gap-4">
+                <p className="text-sm text-gray-500">
+                  Sauvegarde automatique dans ce navigateur.
+                </p>
+                <button
+                  onClick={supprimerPage}
+                  className="rounded border border-red-900 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40"
+                >
+                  Supprimer la page
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+    </>
+  );
+}
+
+function OngletsAnnees({
+  anneeActive,
+  setAnneeActive,
+}: {
+  anneeActive: 1 | 2;
+  setAnneeActive: (annee: 1 | 2) => void;
+}) {
+  return (
+    <div className="mb-8 flex justify-center">
+      <div className="flex rounded-lg bg-[#191b25] p-1">
+        <button
+          onClick={() => setAnneeActive(1)}
+          className={`rounded-md px-6 py-3 ${
+            anneeActive === 1
+              ? "bg-[#242631] text-[#e8b928]"
+              : "text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          PREMIÈRE ANNÉE
+        </button>
+        <button
+          onClick={() => setAnneeActive(2)}
+          className={`rounded-md px-6 py-3 ${
+            anneeActive === 2
+              ? "bg-[#242631] text-[#e8b928]"
+              : "text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          DEUXIÈME ANNÉE
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -486,10 +626,7 @@ function PagePotions() {
   return (
     <>
       <header className="mb-8">
-        <h2 className="text-3xl text-[#d6a928]">
-          LIVRE DES POTIONS
-        </h2>
-
+        <h2 className="text-3xl text-[#d6a928]">LIVRE DES POTIONS</h2>
         <p className="mt-1 text-gray-500">
           Recettes et ingrédients magiques
         </p>
@@ -502,18 +639,8 @@ function PagePotions() {
             className="rounded-lg border border-[#54421f] bg-[#171923] p-6"
           >
             <div className="text-4xl">{potion.icone}</div>
-
-            <h3 className="mt-4 text-xl text-[#e8b928]">
-              {potion.nom}
-            </h3>
-
-            <p className="mt-2 text-gray-500">
-              {potion.description}
-            </p>
-
-            <button className="mt-5 rounded border border-[#5e4a22] px-4 py-2 text-sm hover:bg-[#3a3019]">
-              Voir la recette
-            </button>
+            <h3 className="mt-4 text-xl text-[#e8b928]">{potion.nom}</h3>
+            <p className="mt-2 text-gray-500">{potion.description}</p>
           </article>
         ))}
       </section>
@@ -531,33 +658,16 @@ function PageNotes({
   return (
     <>
       <header className="mb-8">
-        <h2 className="text-3xl text-[#d6a928]">
-          MES NOTES
-        </h2>
-
-        <p className="mt-1 text-gray-500">
-          Écrivez vos notes de cours
-        </p>
+        <h2 className="text-3xl text-[#d6a928]">MES NOTES</h2>
+        <p className="mt-1 text-gray-500">Écrivez vos notes personnelles</p>
       </header>
 
       <section className="rounded-lg border border-[#54421f] bg-[#171923] p-6">
-        <label
-          htmlFor="notes"
-          className="mb-3 block text-[#e8b928]"
-        >
-          Carnet personnel
-        </label>
-
         <textarea
-          id="notes"
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           className="min-h-[500px] w-full resize-y rounded-lg border border-[#343744] bg-[#0f1119] p-5 leading-7 text-gray-200 outline-none focus:border-[#d6a928]"
         />
-
-        <p className="mt-3 text-sm text-gray-500">
-          Les notes restent enregistrées tant que la page reste ouverte.
-        </p>
       </section>
     </>
   );
@@ -600,12 +710,8 @@ function Statistique({
 }) {
   return (
     <article className="rounded-lg border border-[#54421f] bg-[#171923] p-6 text-center">
-      <div className="text-2xl text-[#f2c438]">
-        {icone}
-      </div>
-
+      <div className="text-2xl text-[#f2c438]">{icone}</div>
       <p className="mt-2 text-2xl">{valeur}</p>
-
       <p className="text-sm text-gray-500">{texte}</p>
     </article>
   );
@@ -621,19 +727,14 @@ function CarteMatiere({
   const progression = Math.round(
     (matiere.points / matiere.maximum) * 100
   );
-
   const restant = matiere.maximum - matiere.points;
 
   return (
     <article className="rounded-lg border border-[#54421f] bg-[#171923] p-5">
       <div className="mb-5 flex gap-3">
         <span className="text-2xl">{matiere.icone}</span>
-
         <div>
-          <h4 className="text-lg uppercase">
-            {matiere.nom}
-          </h4>
-
+          <h4 className="text-lg uppercase">{matiere.nom}</h4>
           <span className="text-xs text-gray-500">
             {restant === 0 ? "Terminé" : "En cours"}
           </span>
@@ -652,17 +753,15 @@ function CarteMatiere({
         </p>
 
         <div className="flex gap-2">
-          <Bouton
+          <PetitBouton
             texte="-"
             action={() => changerPoints(matiere.id, -1)}
           />
-
-          <Bouton
+          <PetitBouton
             texte="+"
             action={() => changerPoints(matiere.id, 1)}
           />
-
-          <Bouton
+          <PetitBouton
             texte="+5"
             action={() => changerPoints(matiere.id, 5)}
           />
@@ -678,11 +777,7 @@ function CarteMatiere({
   );
 }
 
-function Barre({
-  progression,
-}: {
-  progression: number;
-}) {
+function Barre({ progression }: { progression: number }) {
   return (
     <div className="h-2 overflow-hidden rounded-full bg-[#292c39]">
       <div
@@ -695,7 +790,7 @@ function Barre({
   );
 }
 
-function Bouton({
+function PetitBouton({
   texte,
   action,
 }: {
