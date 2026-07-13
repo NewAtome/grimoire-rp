@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Grimoire - Académie Magique",
-  description: "Suivi des cours et des jetons de l'Académie Magique",
+  title: "Site de Riffi Arkanus",
+  description: "Suivi des cours et des jetons de Seven Wands",
 };
 
 export default function RootLayout({
