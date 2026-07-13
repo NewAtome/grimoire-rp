@@ -18,6 +18,14 @@ type PageDeCours = {
   contenu: string;
 };
 
+type PageRecette = {
+  id: number;
+  titre: string;
+  ingredients: string;
+  preparation: string;
+  notes: string;
+};
+
 type PagesParCours = Record<string, PageDeCours[]>;
 
 const annee1: Matiere[] = [
@@ -232,12 +240,11 @@ export default function Home() {
               }}
             />
             <Menu
-              actif={pageActive === "potions"}
+              actif={false}
               icone="🧪"
               texte="Potions"
               action={() => {
-                setPageActive("potions");
-                setCoursOuvert(null);
+                window.location.href = "/potions";
               }}
             />
             <Menu
@@ -782,45 +789,214 @@ function OngletsAnnees({
 }
 
 function PagePotions() {
-  const potions = [
-    {
-      nom: "Potion de soin",
-      icone: "❤️",
-      description: "Restaure l'énergie du personnage.",
-    },
-    {
-      nom: "Potion de sommeil",
-      icone: "🌙",
-      description: "Provoque un sommeil profond.",
-    },
-    {
-      nom: "Potion de vision",
-      icone: "👁️",
-      description: "Améliore temporairement la perception.",
-    },
-  ];
+  const [recettes, setRecettes] = useState<PageRecette[]>([]);
+  const [recetteActive, setRecetteActive] = useState<number | null>(null);
+
+  useEffect(() => {
+    const sauvegarde = localStorage.getItem("seven-wands-recettes");
+
+    if (sauvegarde) {
+      try {
+        const recettesSauvegardees: PageRecette[] = JSON.parse(sauvegarde);
+        setRecettes(recettesSauvegardees);
+        setRecetteActive(recettesSauvegardees[0]?.id ?? null);
+      } catch {
+        // On ignore une sauvegarde invalide.
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("seven-wands-recettes", JSON.stringify(recettes));
+  }, [recettes]);
+
+  const recetteSelectionnee =
+    recettes.find((recette) => recette.id === recetteActive) ?? null;
+
+  function ajouterRecette() {
+    const nouvelleRecette: PageRecette = {
+      id: Date.now(),
+      titre: `Nouvelle recette ${recettes.length + 1}`,
+      ingredients: "",
+      preparation: "",
+      notes: "",
+    };
+
+    setRecettes((anciennesRecettes) => [
+      ...anciennesRecettes,
+      nouvelleRecette,
+    ]);
+    setRecetteActive(nouvelleRecette.id);
+  }
+
+  function modifierRecette(
+    champ: "titre" | "ingredients" | "preparation" | "notes",
+    valeur: string
+  ) {
+    if (recetteActive === null) return;
+
+    setRecettes((anciennesRecettes) =>
+      anciennesRecettes.map((recette) =>
+        recette.id === recetteActive
+          ? { ...recette, [champ]: valeur }
+          : recette
+      )
+    );
+  }
+
+  function supprimerRecette() {
+    if (recetteActive === null) return;
+    if (!window.confirm("Supprimer cette recette ?")) return;
+
+    const nouvellesRecettes = recettes.filter(
+      (recette) => recette.id !== recetteActive
+    );
+
+    setRecettes(nouvellesRecettes);
+    setRecetteActive(nouvellesRecettes[0]?.id ?? null);
+  }
 
   return (
     <>
-      <header className="mb-8">
-        <h2 className="text-3xl text-[#d6a928]">LIVRE DES POTIONS</h2>
-        <p className="mt-1 text-gray-500">
-          Recettes et ingrédients magiques
-        </p>
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl text-[#d6a928]">LIVRE DES POTIONS</h2>
+          <p className="mt-1 text-gray-500">
+            Créez vos propres pages de recettes et de recherches.
+          </p>
+        </div>
+
+        <button
+          onClick={ajouterRecette}
+          className="rounded-md bg-[#d6a928] px-4 py-2 font-medium text-black hover:bg-[#f2c438]"
+        >
+          + Nouvelle recette
+        </button>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {potions.map((potion) => (
-          <article
-            key={potion.nom}
-            className="rounded-lg border border-[#54421f] bg-[#171923] p-6"
-          >
-            <div className="text-4xl">{potion.icone}</div>
-            <h3 className="mt-4 text-xl text-[#e8b928]">{potion.nom}</h3>
-            <p className="mt-2 text-gray-500">{potion.description}</p>
-          </article>
-        ))}
-      </section>
+      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+        <aside className="rounded-lg border border-[#54421f] bg-[#171923] p-4">
+          <h3 className="mb-3 text-sm uppercase tracking-widest text-gray-500">
+            Mes recettes
+          </h3>
+
+          {recettes.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-[#54421f] p-4 text-center">
+              <div className="text-4xl">🧪</div>
+              <p className="mt-3 text-sm text-gray-500">
+                Aucune recette pour le moment.
+              </p>
+              <button
+                onClick={ajouterRecette}
+                className="mt-4 rounded border border-[#5e4a22] px-3 py-2 text-sm hover:bg-[#3a3019]"
+              >
+                Créer ma première recette
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recettes.map((recette, index) => (
+                <button
+                  key={recette.id}
+                  onClick={() => setRecetteActive(recette.id)}
+                  className={`w-full rounded-md px-3 py-3 text-left ${
+                    recetteActive === recette.id
+                      ? "bg-[#3a3420] text-[#f2c438]"
+                      : "bg-[#10121a] text-gray-300 hover:bg-white/5"
+                  }`}
+                >
+                  <span className="mr-2 text-gray-500">{index + 1}.</span>
+                  {recette.titre || "Recette sans titre"}
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        <section className="rounded-lg border border-[#54421f] bg-[#171923] p-5">
+          {!recetteSelectionnee ? (
+            <div className="grid min-h-[560px] place-items-center text-center">
+              <div>
+                <div className="text-6xl">⚗️</div>
+                <p className="mt-4 text-lg text-gray-300">
+                  Crée une recette pour commencer.
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Tu pourras écrire les ingrédients, les étapes et tes recherches.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <input
+                value={recetteSelectionnee.titre}
+                onChange={(event) =>
+                  modifierRecette("titre", event.target.value)
+                }
+                placeholder="Nom de la potion"
+                className="w-full border-b border-[#343744] bg-transparent pb-3 text-2xl text-[#e8b928] outline-none focus:border-[#d6a928]"
+              />
+
+              <div className="mt-5 grid gap-5 xl:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm uppercase tracking-widest text-[#8d7a48]">
+                    Ingrédients
+                  </label>
+                  <textarea
+                    value={recetteSelectionnee.ingredients}
+                    onChange={(event) =>
+                      modifierRecette("ingredients", event.target.value)
+                    }
+                    placeholder={"Exemple :\n- 3 feuilles de mandragore\n- 1 fiole d'eau de lune"}
+                    className="min-h-[220px] w-full resize-y rounded-lg border border-[#343744] bg-[#0f1119] p-4 leading-7 text-gray-200 outline-none focus:border-[#d6a928]"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm uppercase tracking-widest text-[#8d7a48]">
+                    Préparation
+                  </label>
+                  <textarea
+                    value={recetteSelectionnee.preparation}
+                    onChange={(event) =>
+                      modifierRecette("preparation", event.target.value)
+                    }
+                    placeholder={"Exemple :\n1. Chauffer le chaudron.\n2. Ajouter les ingrédients."}
+                    className="min-h-[220px] w-full resize-y rounded-lg border border-[#343744] bg-[#0f1119] p-4 leading-7 text-gray-200 outline-none focus:border-[#d6a928]"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <label className="mb-2 block text-sm uppercase tracking-widest text-[#8d7a48]">
+                  Recherches et observations
+                </label>
+                <textarea
+                  value={recetteSelectionnee.notes}
+                  onChange={(event) =>
+                    modifierRecette("notes", event.target.value)
+                  }
+                  placeholder="Ajoute ici les effets, les essais, les erreurs et les résultats..."
+                  className="min-h-[220px] w-full resize-y rounded-lg border border-[#343744] bg-[#0f1119] p-4 leading-7 text-gray-200 outline-none focus:border-[#d6a928]"
+                />
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                <p className="text-sm text-gray-500">
+                  Sauvegarde automatique dans ce navigateur.
+                </p>
+
+                <button
+                  onClick={supprimerRecette}
+                  className="rounded border border-red-900 px-4 py-2 text-sm text-red-400 hover:bg-red-950/40"
+                >
+                  Supprimer la recette
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
     </>
   );
 }
