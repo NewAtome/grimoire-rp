@@ -10,7 +10,7 @@ type Matiere = {
   maximum: number;
 };
 
-type PageActive = "jetons" | "cours" | "potions" | "notes";
+type PageActive = "accueil" | "jetons" | "cours" | "potions" | "notes" | "reglement";
 
 type PageDeCours = {
   id: number;
@@ -45,7 +45,7 @@ function cleCours(annee: 1 | 2, matiereId: number) {
 }
 
 export default function Home() {
-  const [pageActive, setPageActive] = useState<PageActive>("jetons");
+  const [pageActive, setPageActive] = useState<PageActive>("accueil");
   const [anneeActive, setAnneeActive] = useState<1 | 2>(1);
   const [matieresAnnee1, setMatieresAnnee1] = useState<Matiere[]>(annee1);
   const [matieresAnnee2, setMatieresAnnee2] = useState<Matiere[]>(annee2);
@@ -191,7 +191,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="text-3xl">📚</div>
             <div>
-              <h1 className="text-xl text-[#d6a928]">GRIMOIRE</h1>
+              <h1 className="text-xl text-[#d6a928]">SEVEN WANDS</h1>
               <p className="text-xs text-gray-500">Académie magique</p>
             </div>
           </div>
@@ -203,6 +203,16 @@ export default function Home() {
           </p>
 
           <div className="space-y-2">
+            <Menu
+              actif={pageActive === "accueil"}
+              icone="🏰"
+              texte="Accueil"
+              action={() => {
+                setPageActive("accueil");
+                setCoursOuvert(null);
+              }}
+            />
+
             <Menu
               actif={pageActive === "jetons"}
               icone="🪙"
@@ -239,11 +249,23 @@ export default function Home() {
                 setCoursOuvert(null);
               }}
             />
+
+            <Menu
+              actif={pageActive === "reglement"}
+              icone="📜"
+              texte="Règlement"
+              action={() => {
+                setPageActive("reglement");
+                setCoursOuvert(null);
+              }}
+            />
           </div>
         </nav>
       </aside>
 
       <main className="p-6 md:ml-60 md:p-8">
+        {pageActive === "accueil" && <PageAccueil />}
+
         {pageActive === "jetons" && (
           <PageJetons
             anneeActive={anneeActive}
@@ -290,8 +312,163 @@ export default function Home() {
         {pageActive === "notes" && (
           <PageNotes notes={notes} setNotes={setNotes} />
         )}
+
+        {pageActive === "reglement" && <PageReglement />}
       </main>
     </div>
+  );
+}
+
+
+function PageAccueil() {
+  return (
+    <>
+      <section className="overflow-hidden rounded-2xl border border-[#54421f] bg-gradient-to-br from-[#171923] via-[#11131b] to-[#090b12] p-8 md:p-12">
+        <div className="max-w-3xl">
+          <p className="mb-3 text-sm uppercase tracking-[0.25em] text-[#8d7a48]">
+            Bienvenue à l&apos;Académie
+          </p>
+
+          <h2 className="text-4xl font-semibold text-[#e8b928] md:text-6xl">
+            Le Grimoire des élèves
+          </h2>
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-300">
+            Ce site rassemble les cours, les notes, les recettes de potions
+            et la progression des élèves de l&apos;académie magique.
+          </p>
+
+          <p className="mt-4 max-w-2xl leading-7 text-gray-500">
+            Consulte les matières, ouvre un cours pour écrire plusieurs pages,
+            garde tes notes personnelles et retrouve le règlement du serveur.
+          </p>
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-4 md:grid-cols-3">
+        <CarteAccueil
+          icone="📚"
+          titre="Cours"
+          texte="Retrouve chaque matière et crée autant de pages de cours que nécessaire."
+        />
+        <CarteAccueil
+          icone="🪙"
+          titre="Progression"
+          texte="Suis les jetons et les objectifs de première et deuxième année."
+        />
+        <CarteAccueil
+          icone="📜"
+          titre="Règlement"
+          texte="Consulte les règles importantes pour garder un RP agréable et cohérent."
+        />
+      </section>
+
+      <section className="mt-6 rounded-xl border border-[#54421f] bg-[#171923] p-6">
+        <h3 className="text-2xl text-[#e8b928]">À propos du serveur</h3>
+        <p className="mt-3 max-w-4xl leading-7 text-gray-400">
+          Notre serveur propose une expérience de roleplay magique centrée sur
+          la vie scolaire, les cours, les clubs, les aventures et l&apos;évolution
+          des personnages. Chaque élève est invité à participer avec respect,
+          créativité et cohérence.
+        </p>
+      </section>
+    </>
+  );
+}
+
+function CarteAccueil({
+  icone,
+  titre,
+  texte,
+}: {
+  icone: string;
+  titre: string;
+  texte: string;
+}) {
+  return (
+    <article className="rounded-xl border border-[#54421f] bg-[#171923] p-6">
+      <div className="text-4xl">{icone}</div>
+      <h3 className="mt-4 text-xl text-[#e8b928]">{titre}</h3>
+      <p className="mt-2 leading-6 text-gray-500">{texte}</p>
+    </article>
+  );
+}
+
+function PageReglement() {
+  const regles = [
+    {
+      titre: "Respect",
+      texte:
+        "Respecte tous les joueurs et les membres du staff. Les insultes, le harcèlement et les discriminations sont interdits.",
+    },
+    {
+      titre: "Cohérence RP",
+      texte:
+        "Reste cohérent avec ton personnage et l’univers du serveur. Évite les actions impossibles ou sans conséquence.",
+    },
+    {
+      titre: "Fair-play",
+      texte:
+        "N’utilise pas d’informations apprises hors RP. Laisse aux autres le temps de répondre et accepte les conséquences de tes actions.",
+    },
+    {
+      titre: "Cours et événements",
+      texte:
+        "Pendant les cours et les événements, écoute les professeurs et respecte les consignes données en jeu.",
+    },
+    {
+      titre: "Contenu approprié",
+      texte:
+        "Garde un contenu adapté à la communauté. Les contenus choquants, illégaux ou explicitement sexuels sont interdits.",
+    },
+    {
+      titre: "Décisions du staff",
+      texte:
+        "En cas de problème, contacte le staff calmement. Les décisions doivent être discutées en privé, sans perturber le RP.",
+    },
+  ];
+
+  return (
+    <>
+      <header className="mb-8">
+        <p className="text-sm uppercase tracking-[0.2em] text-[#8d7a48]">
+          Vie de l&apos;académie
+        </p>
+        <h2 className="mt-2 text-4xl text-[#d6a928]">RÈGLEMENT</h2>
+        <p className="mt-2 max-w-3xl text-gray-500">
+          Ces règles permettent de garder une ambiance agréable, immersive et
+          respectueuse pour tous.
+        </p>
+      </header>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        {regles.map((regle, index) => (
+          <article
+            key={regle.titre}
+            className="rounded-xl border border-[#54421f] bg-[#171923] p-6"
+          >
+            <div className="flex items-start gap-4">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#6d5526] bg-[#11131b] text-[#f2c438]">
+                {index + 1}
+              </div>
+
+              <div>
+                <h3 className="text-xl text-[#e8b928]">{regle.titre}</h3>
+                <p className="mt-2 leading-7 text-gray-400">{regle.texte}</p>
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="mt-6 rounded-xl border border-red-900/60 bg-red-950/10 p-6">
+        <h3 className="text-xl text-red-300">Important</h3>
+        <p className="mt-2 leading-7 text-red-200/70">
+          Le règlement peut évoluer. En restant sur le serveur, chaque membre
+          accepte de respecter les règles en vigueur et les consignes du staff.
+        </p>
+      </section>
+    </>
   );
 }
 
