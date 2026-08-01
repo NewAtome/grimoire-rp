@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
 type Matiere = {
   id: number;
@@ -11,6 +11,8 @@ type Matiere = {
 };
 
 type PageActive = "accueil" | "jetons" | "cours" | "potions" | "notes" | "reglement";
+
+type Annee = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 type PageDeCours = {
   id: number;
@@ -48,15 +50,70 @@ const annee2: Matiere[] = [
   { id: 107, nom: "Divers", icone: "⚡", points: 0, maximum: 50 },
 ];
 
-function cleCours(annee: 1 | 2, matiereId: number) {
+const annee3: Matiere[] = [
+  { id: 201, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 25 },
+  { id: 202, nom: "Sorts", icone: "✨", points: 0, maximum: 45 },
+  { id: 203, nom: "Potions", icone: "🧪", points: 0, maximum: 20 },
+  { id: 204, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 30 },
+  { id: 205, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 30 },
+  { id: 206, nom: "Club", icone: "🏆", points: 0, maximum: 20 },
+  { id: 207, nom: "Divers", icone: "⚡", points: 0, maximum: 50 },
+];
+
+const annee4: Matiere[] = [
+  { id: 301, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 30 },
+  { id: 302, nom: "Sorts", icone: "✨", points: 0, maximum: 50 },
+  { id: 303, nom: "Potions", icone: "🧪", points: 0, maximum: 25 },
+  { id: 304, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 35 },
+  { id: 305, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 35 },
+  { id: 306, nom: "Club", icone: "🏆", points: 0, maximum: 25 },
+  { id: 307, nom: "Divers", icone: "⚡", points: 0, maximum: 60 },
+];
+
+const annee5: Matiere[] = [
+  { id: 401, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 35 },
+  { id: 402, nom: "Sorts", icone: "✨", points: 0, maximum: 55 },
+  { id: 403, nom: "Potions", icone: "🧪", points: 0, maximum: 30 },
+  { id: 404, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 40 },
+  { id: 405, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 40 },
+  { id: 406, nom: "Club", icone: "🏆", points: 0, maximum: 30 },
+  { id: 407, nom: "Divers", icone: "⚡", points: 0, maximum: 70 },
+];
+
+const annee6: Matiere[] = [
+  { id: 501, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 40 },
+  { id: 502, nom: "Sorts", icone: "✨", points: 0, maximum: 60 },
+  { id: 503, nom: "Potions", icone: "🧪", points: 0, maximum: 35 },
+  { id: 504, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 45 },
+  { id: 505, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 45 },
+  { id: 506, nom: "Club", icone: "🏆", points: 0, maximum: 35 },
+  { id: 507, nom: "Divers", icone: "⚡", points: 0, maximum: 80 },
+];
+
+const annee7: Matiere[] = [
+  { id: 601, nom: "Alchimie - Botanique", icone: "🌿", points: 0, maximum: 45 },
+  { id: 602, nom: "Sorts", icone: "✨", points: 0, maximum: 70 },
+  { id: 603, nom: "Potions", icone: "🧪", points: 0, maximum: 40 },
+  { id: 604, nom: "Histoire de la magie", icone: "📜", points: 0, maximum: 50 },
+  { id: 605, nom: "Créatures magiques", icone: "🐉", points: 0, maximum: 50 },
+  { id: 606, nom: "Club", icone: "🏆", points: 0, maximum: 40 },
+  { id: 607, nom: "Divers", icone: "⚡", points: 0, maximum: 90 },
+];
+
+function cleCours(annee: Annee, matiereId: number) {
   return `${annee}-${matiereId}`;
 }
 
 export default function Home() {
   const [pageActive, setPageActive] = useState<PageActive>("accueil");
-  const [anneeActive, setAnneeActive] = useState<1 | 2>(1);
+  const [anneeActive, setAnneeActive] = useState<Annee>(1);
   const [matieresAnnee1, setMatieresAnnee1] = useState<Matiere[]>(annee1);
   const [matieresAnnee2, setMatieresAnnee2] = useState<Matiere[]>(annee2);
+  const [matieresAnnee3, setMatieresAnnee3] = useState<Matiere[]>(annee3);
+  const [matieresAnnee4, setMatieresAnnee4] = useState<Matiere[]>(annee4);
+  const [matieresAnnee5, setMatieresAnnee5] = useState<Matiere[]>(annee5);
+  const [matieresAnnee6, setMatieresAnnee6] = useState<Matiere[]>(annee6);
+  const [matieresAnnee7, setMatieresAnnee7] = useState<Matiere[]>(annee7);
   const [coursOuvert, setCoursOuvert] = useState<Matiere | null>(null);
   const [pageCoursActive, setPageCoursActive] = useState<number | null>(null);
   const [pagesParCours, setPagesParCours] = useState<PagesParCours>({});
@@ -77,8 +134,17 @@ export default function Home() {
     localStorage.setItem("grimoire-pages-cours", JSON.stringify(pagesParCours));
   }, [pagesParCours]);
 
-  const matieres =
-    anneeActive === 1 ? matieresAnnee1 : matieresAnnee2;
+  const matieresParAnnee: Record<Annee, Matiere[]> = {
+    1: matieresAnnee1,
+    2: matieresAnnee2,
+    3: matieresAnnee3,
+    4: matieresAnnee4,
+    5: matieresAnnee5,
+    6: matieresAnnee6,
+    7: matieresAnnee7,
+  };
+
+  const matieres = matieresParAnnee[anneeActive];
 
   const totalPoints = useMemo(
     () => matieres.reduce((total, matiere) => total + matiere.points, 0),
@@ -111,17 +177,42 @@ export default function Home() {
           : matiere
       );
 
-    if (anneeActive === 1) {
-      setMatieresAnnee1(modifier);
-    } else {
-      setMatieresAnnee2(modifier);
-    }
+    const setters: Record<Annee, Dispatch<SetStateAction<Matiere[]>>> = {
+      1: setMatieresAnnee1,
+      2: setMatieresAnnee2,
+      3: setMatieresAnnee3,
+      4: setMatieresAnnee4,
+      5: setMatieresAnnee5,
+      6: setMatieresAnnee6,
+      7: setMatieresAnnee7,
+    };
+
+    setters[anneeActive](modifier);
   }
 
   function reinitialiser() {
     if (!window.confirm("Réinitialiser les points de cette année ?")) return;
-    if (anneeActive === 1) setMatieresAnnee1(annee1);
-    else setMatieresAnnee2(annee2);
+    const valeursInitiales: Record<Annee, Matiere[]> = {
+      1: annee1,
+      2: annee2,
+      3: annee3,
+      4: annee4,
+      5: annee5,
+      6: annee6,
+      7: annee7,
+    };
+
+    const setters: Record<Annee, Dispatch<SetStateAction<Matiere[]>>> = {
+      1: setMatieresAnnee1,
+      2: setMatieresAnnee2,
+      3: setMatieresAnnee3,
+      4: setMatieresAnnee4,
+      5: setMatieresAnnee5,
+      6: setMatieresAnnee6,
+      7: setMatieresAnnee7,
+    };
+
+    setters[anneeActive](valeursInitiales[anneeActive]);
   }
 
   function ouvrirCours(matiere: Matiere) {
@@ -200,7 +291,7 @@ export default function Home() {
             <div className="text-3xl">📚</div>
             <div>
               <h1 className="text-xl text-[#d6a928]">SEVEN WANDS</h1>
-              <p className="text-xs text-gray-500">Académie magique</p>
+              <p className="text-xs text-gray-500">Académie de Magie</p>
             </div>
           </div>
         </div>
@@ -479,6 +570,20 @@ function PageReglement() {
   );
 }
 
+function nomAnnee(annee: Annee, majuscules = false) {
+  const noms = {
+    1: "Première année",
+    2: "Deuxième année",
+    3: "Troisième année",
+    4: "Quatrième année",
+    5: "Cinquième année",
+    6: "Sixième année",
+    7: "Septième année",
+  } as const;
+
+  return majuscules ? noms[annee].toUpperCase() : noms[annee];
+}
+
 function PageJetons({
   anneeActive,
   setAnneeActive,
@@ -490,8 +595,8 @@ function PageJetons({
   changerPoints,
   reinitialiser,
 }: {
-  anneeActive: 1 | 2;
-  setAnneeActive: (annee: 1 | 2) => void;
+  anneeActive: Annee;
+  setAnneeActive: (annee: Annee) => void;
   matieres: Matiere[];
   totalPoints: number;
   totalMaximum: number;
@@ -545,7 +650,7 @@ function PageJetons({
         <div className="mb-5 flex items-end justify-between">
           <div>
             <h3 className="text-2xl text-[#d6a928]">
-              {anneeActive === 1 ? "PREMIÈRE ANNÉE" : "DEUXIÈME ANNÉE"}
+              {nomAnnee(anneeActive, true)}
             </h3>
             <p className="text-gray-500">
               {coursTermines}/{matieres.length} cours complétés
@@ -583,8 +688,8 @@ function PageCours({
   ouvrirCours,
 }: {
   matieres: Matiere[];
-  anneeActive: 1 | 2;
-  setAnneeActive: (annee: 1 | 2) => void;
+  anneeActive: Annee;
+  setAnneeActive: (annee: Annee) => void;
   ouvrirCours: (matiere: Matiere) => void;
 }) {
   return (
@@ -638,7 +743,7 @@ function EditeurCours({
   supprimerPage,
 }: {
   matiere: Matiere;
-  anneeActive: 1 | 2;
+  anneeActive: Annee;
   pages: PageDeCours[];
   pageActive: number | null;
   pageSelectionnee: PageDeCours | null;
@@ -662,7 +767,7 @@ function EditeurCours({
             {matiere.icone} {matiere.nom}
           </h2>
           <p className="mt-1 text-gray-500">
-            {anneeActive === 1 ? "Première année" : "Deuxième année"}
+            {nomAnnee(anneeActive)}
           </p>
         </div>
 
@@ -757,32 +862,49 @@ function OngletsAnnees({
   anneeActive,
   setAnneeActive,
 }: {
-  anneeActive: 1 | 2;
-  setAnneeActive: (annee: 1 | 2) => void;
+  anneeActive: Annee;
+  setAnneeActive: (annee: Annee) => void;
 }) {
+  const annees: Array<{ id: Annee; label: string; icone: string }> = [
+    { id: 1, label: "Première année", icone: "📘" },
+    { id: 2, label: "Deuxième année", icone: "📗" },
+    { id: 3, label: "Troisième année", icone: "📙" },
+    { id: 4, label: "Quatrième année", icone: "📕" },
+    { id: 5, label: "Cinquième année", icone: "📔" },
+    { id: 6, label: "Sixième année", icone: "📓" },
+    { id: 7, label: "Septième année", icone: "🎓" },
+  ];
+
   return (
     <div className="mb-8 flex justify-center">
-      <div className="flex rounded-lg bg-[#191b25] p-1">
-        <button
-          onClick={() => setAnneeActive(1)}
-          className={`rounded-md px-6 py-3 ${
-            anneeActive === 1
-              ? "bg-[#242631] text-[#e8b928]"
-              : "text-gray-500 hover:text-gray-300"
-          }`}
+      <div className="w-full max-w-md rounded-xl border border-[#54421f] bg-[#171923] p-4">
+        <label
+          htmlFor="annee"
+          className="mb-2 block text-xs uppercase tracking-[0.2em] text-gray-500"
         >
-          PREMIÈRE ANNÉE
-        </button>
-        <button
-          onClick={() => setAnneeActive(2)}
-          className={`rounded-md px-6 py-3 ${
-            anneeActive === 2
-              ? "bg-[#242631] text-[#e8b928]"
-              : "text-gray-500 hover:text-gray-300"
-          }`}
-        >
-          DEUXIÈME ANNÉE
-        </button>
+          Année scolaire
+        </label>
+
+        <div className="relative">
+          <select
+            id="annee"
+            value={anneeActive}
+            onChange={(event) =>
+              setAnneeActive(Number(event.target.value) as Annee)
+            }
+            className="w-full appearance-none rounded-lg border border-[#5e4a22] bg-[#0f1119] px-4 py-3 pr-10 text-[#e8b928] outline-none focus:border-[#d6a928]"
+          >
+            {annees.map((annee) => (
+              <option key={annee.id} value={annee.id}>
+                {annee.icone} {annee.label}
+              </option>
+            ))}
+          </select>
+
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#d6a928]">
+            ▼
+          </span>
+        </div>
       </div>
     </div>
   );
